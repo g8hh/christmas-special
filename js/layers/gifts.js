@@ -252,6 +252,9 @@ addLayer("g", {
 			toggles: [["g", "goodDeeds"]],
 			done() {
 				return hasUpgrade("g", 41)
+			},
+			unlocked() {
+				return hasUpgrade("g", 41)
 			}
 		},
 		200: {
