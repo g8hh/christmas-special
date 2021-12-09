@@ -183,7 +183,7 @@ addLayer("g", {
 				return player.g.buyables[31].sqrt();
 			},
 			cost() {
-				return player.g.buyables[31].sub(40).mul(0.25).max(15);
+				return player.g.buyables[31].sub(40).mul(0.5).max(30);
 			},
 			canAfford() {
 				return player.g.toys.points.gte(tmp.g.buyables[31].cost);
@@ -206,7 +206,7 @@ addLayer("g", {
 		12: {
 			title: "The Flame Tree",
 			description: "What's more relaxing than a nice bonfire?",
-			cost: 1e5,
+			cost: 1.6e5,
 			currencyLocation() {
 				return player.g.coal
 			},
@@ -231,12 +231,12 @@ addLayer("g", {
 		41: {
 			title: "Good Deeds",
 			description: "Give away a 4th of your presents each time for a small chance of getting some toys.",
-			cost: 40
+			cost: 80
 		},
 		71: {
 			title: "Generous Donation",
 			description: "Might as well go the whole way and bump your good deeds up even more.",
-			cost: 8,
+			cost: 12,
 			currencyLocation() {
 				return player.g.toys
 			},
@@ -294,7 +294,7 @@ addLayer("g", {
 	},
 
 	update(d) {
-		player.g.waitTime = player.g.waitTime.add(d);
+		player.g.waitTime = player.g.waitTime.add(tmp.g.waitTimeGain.mul(d));
 		addPoints("g", player.g.waitTime.div(10).floor().mul(tmp.g.giftMulti));
 		for (i of tmp.g.giftEffects) {
 			if (player.g[i])
