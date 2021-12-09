@@ -406,7 +406,7 @@ addLayer("g", {
 			return tmp.g.joy.gte(1) ? tmp.g.joy.add(1).pow(1.2) : decimalOne
 		},
 		giftAmount() {
-			return tmp.g.joy.gte(18.88) ? tmp.g.joy.sub(17.38).div(1.5).pow(0.3).floor().min(6).toNumber() : decimalZero
+			return tmp.g.joy.gte(18.88) ? tmp.g.joy.sub(17.38).div(1.5).pow(0.3).floor().min(6).toNumber() : 0
 		}
 	},
 	doReset() {}
