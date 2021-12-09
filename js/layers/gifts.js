@@ -333,7 +333,7 @@ addLayer("g", {
 				}
 			}, () => hasUpgrade("g", 12)], ["clickable", 31], "blank", ["raw-html", () => {
 				return `You have ${format(player.g.coalBurning)} coal in the burning pile, but 2% of it is being burnt every second.<br><br><br>`
-			}]],
+			}, () => hasUpgrade("g", 12)]],
 			unlocked() {
 				return player.g.coal.total.gt(0)
 			}
