@@ -1,9 +1,9 @@
 let modInfo = {
-	name: "The ??? Tree",
-	id: "mymod",
-	author: "nobody",
-	pointsName: "points",
-	modFiles: ["layers.js", "tree.js"],
+	name: "The Christmas^2 Tree",
+	id: "ScarletDystopia181-2122christmastree",
+	author: "Scarlet",
+	pointsName: "christmas points",
+	modFiles: ["layers/gifts.js", "layers/money.js", "tree.js"],
 
 	discordName: "",
 	discordLink: "",
@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.0",
-	name: "Literally nothing",
+	num: "2.0",
+	name: "Christmas",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
@@ -42,7 +42,7 @@ function getPointGen() {
 	if(!canGenPoints())
 		return new Decimal(0)
 
-	let gain = new Decimal(1)
+	let gain = new Decimal(0)
 	return gain
 }
 
@@ -70,7 +70,7 @@ var backgroundStyle = {
 
 // You can change this if you have things that can be messed up by long tick lengths
 function maxTickLength() {
-	return(3600) // Default is 1 hour which is just arbitrarily large
+	return(20) 
 }
 
 // Use this if you need to undo inflation from an older version. If the version is older than the version that fixed the issue,

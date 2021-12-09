@@ -3,7 +3,7 @@ var particleID = 0;
 var mouseX = 0;
 var mouseY = 0;
 
-function makeParticles(data, amount=1, type = "normal") {
+function makeParticles(data, amount=1, type = "gift") {
     for (let x = 0; x < amount; x++) {
         let particle = newParticles[type]()
         for (thing in data) {
@@ -78,7 +78,7 @@ function setSpeed(particle, speed) {
 }
 
 const newParticles = {
-    normal() {
+    gift() {
         particleID++
         return {
             time: 3,
@@ -94,7 +94,7 @@ const newParticles = {
             speed: 15,
             xVel: 0,
             yVel: 0,
-            rotation: 0,
+            rotation: 3,
             gravity: 0,
             fadeOutTime: 1,
             fadeInTimer: 0,
