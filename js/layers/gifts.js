@@ -174,11 +174,6 @@ addLayer("g", {
 				player.g.toys.points = player.g.toys.points.sub(tmp.g.buyables[31].cost);
 				player.g.buyables[31] = player.g.buyables[31].add(1);
 			},
-			buyMax() {
-				const gain = player.g.toys.points.div(tmp.g.buyables[31].cost).floor();
-				player.g.toys.points = player.g.toys.points.sub(gain.mul(tmp.g.buyables[31].cost));
-				player.g.buyables[31] = player.g.buyables[31].add(gain);
-			},
 			effect() {
 				return player.g.buyables[31].sqrt();
 			},
@@ -308,7 +303,7 @@ addLayer("g", {
 	},
 	automate() {
 		if (player.g.collectToys && hasMilestone("g", 200))
-			buyMaxBuyable("g", 31);
+			buyBuyable("g", 31);
 	},
 	tabFormat: {
 		Main: {
