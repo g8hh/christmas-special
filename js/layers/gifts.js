@@ -66,12 +66,13 @@ addLayer("g", {
 			onClick() {
 				player.g.points = player.g.points.sub(1);
 				openGift();
-				makeParticles({
-					gravity: 1,
-					angle() {return Math.random()*180 - 90},
-					spread: 0,
-					rotation: 30
-				}, 3)
+				if (options.particles)
+					makeParticles({
+						gravity: 1,
+						angle() {return Math.random()*180 - 90},
+						spread: 0,
+						rotation: 30
+					}, 3)
 			},
 			onHold() {
 				clickClickable("g", 11)

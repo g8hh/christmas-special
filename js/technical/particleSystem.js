@@ -81,7 +81,7 @@ const newParticles = {
     gift() {
         particleID++
         return {
-            time: 3,
+            time: 1,
             id: particleID,
             x: mouseX,
             y: mouseY,
