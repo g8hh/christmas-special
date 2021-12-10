@@ -13,7 +13,7 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "2.0",
+	num: "2.1",
 	name: "Christmas",
 }
 
@@ -76,4 +76,12 @@ function maxTickLength() {
 // Use this if you need to undo inflation from an older version. If the version is older than the version that fixed the issue,
 // you can cap their current resources with this.
 function fixOldSave(oldVersion){
+	if (oldVersion == "2.0") {
+		player.m.points = player.m.points.min(3);
+		player.m.total = player.m.points;
+		if (player.m.upgrades.includes(11) || player.m.upgrades.includes("11")) player.m.total = player.m.total.add(1);
+		if (player.m.upgrades.includes(12) || player.m.upgrades.includes("12")) player.m.total = player.m.total.add(2);
+		player.m.best = player.m.best.min(3);
+		player.g.buyables[11] = player.g.buyables[11].min(100);
+	}
 }

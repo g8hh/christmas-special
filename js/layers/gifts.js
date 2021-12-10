@@ -179,7 +179,7 @@ addLayer("g", {
 				return player.g.buyables[31].sqrt();
 			},
 			cost() {
-				return player.g.buyables[31].sub(40).mul(0.5).max(30);
+				return player.g.buyables[31].sub(85).mul(2).max(30);
 			},
 			canAfford() {
 				return player.g.toys.points.gte(tmp.g.buyables[31].cost);
