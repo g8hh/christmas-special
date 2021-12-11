@@ -63,10 +63,10 @@ addLayer("g", {
 			canClick() {
 				return player.g.points.gte(1)
 			},
-			onClick() {
+			onClick(auto = false) {
 				player.g.points = player.g.points.sub(1);
 				openGift();
-				if (options.particles)
+				if (options.particles && !auto)
 					makeParticles({
 						gravity: 1,
 						angle() {return Math.random()*180 - 90},
@@ -111,9 +111,19 @@ addLayer("g", {
 			},
 			reward() {
 				if (player.g.buyables[31].lt(100)) return decimalZero;
-				return player.g.buyables[31].div(100);
+				let base = player.g.buyables[31].div(100);
+				base = base.mul(tmp.mc.buyables.printer.effect);
+				base = base.mul(tmp.g.buyables[22].effect)
+				return base;
 			},
-			color: "#cc7"
+			color: "#cc7",
+			style: {
+				height: '120px',
+				width: '180px',
+				'border-radius': '25%',
+				border: '4px solid',
+				'border-color': 'rgba(0, 0, 0, 0.125)',
+			}
 		}
 	},
 	buyables: {
@@ -163,6 +173,56 @@ addLayer("g", {
 			},
 			color: "#666"
 		},
+		21: {
+			title: "Fire duplicator",
+			display() {
+				return `What is this, minceraft dot bat?<br>
+				x${format(tmp.g.buyables[21].effect)} to fire gain<br>
+				${format(player.g.fire.points)}/${format(tmp.g.buyables[21].cost)} fire`
+			},
+			buy() {
+				player.g.fire.points = player.g.fire.points.sub(tmp.g.buyables[21].cost);
+				player.g.buyables[21] = player.g.buyables[21].add(1);
+			},
+			effect() {
+				return player.g.buyables[21].add(1).pow(2);
+			},
+			cost() {
+				return Decimal.pow(3, player.g.buyables[21].add(15));
+			},
+			canAfford() {
+				return player.g.fire.points.gte(tmp.g.buyables[21].cost);
+			},
+			unlocked() {
+				return hasUpgrade("g", 15)
+			},
+			color: "#f40"
+		},
+		22: {
+			title: "Morale boost",
+			display() {
+				return `Increase money gain (?)<br>
+				x${format(tmp.g.buyables[22].effect)} to money gain<br>
+				${format(player.g.fire.points)}/${format(tmp.g.buyables[22].cost)} fire`
+			},
+			buy() {
+				player.g.fire.points = player.g.fire.points.sub(tmp.g.buyables[22].cost);
+				player.g.buyables[22] = player.g.buyables[22].add(1);
+			},
+			effect() {
+				return player.g.buyables[22].pow(1.5).mul(0.1).add(1);
+			},
+			cost() {
+				return Decimal.pow(4, player.g.buyables[22].add(10));
+			},
+			canAfford() {
+				return player.g.fire.points.gte(tmp.g.buyables[22].cost);
+			},
+			unlocked() {
+				return hasUpgrade("g", 15)
+			},
+			color: "#f40"
+		},
 		31: {
 			title: "Toy collection",
 			display() {
@@ -175,14 +235,56 @@ addLayer("g", {
 				player.g.toys.points = player.g.toys.points.sub(tmp.g.buyables[31].cost);
 				player.g.buyables[31] = player.g.buyables[31].add(1);
 			},
+			/*buyMax() {
+				let amt;
+				if (player.g.buyables[31].lt(100)) amt = player.g.toys.points.div(30).min(new Decimal(100).sub(player.g.buyables[31]));
+				else {
+					let p = player.g.toys.points;
+					let previousCost = player.g.buyables[31].pow(2).add(player.g.buyables[31]).mul(0.75).sub(player.g.buyables[31].mul(120));
+					const a = new Decimal(0.75),
+						b = new Decimal(-119.25);
+						c = previousCost.neg().sub(player.g.toys.points);
+
+					amt = b.neg().add(b.pow(2).sub(a.mul(c).mul(4)).sqrt()).div(a.mul(2));
+				}
+				player.g.buyables[31] = player.g.buyables[31].add(amt);
+			},*/
 			effect() {
-				return player.g.buyables[31].sqrt();
+				return softcap(player.g.buyables[31].sqrt(), new Decimal(30), 0.5);
 			},
 			cost() {
-				return player.g.buyables[31].sub(85).mul(2).max(30);
+				return player.g.buyables[31].sub(80).mul(1.5).max(30);
 			},
 			canAfford() {
 				return player.g.toys.points.gte(tmp.g.buyables[31].cost);
+			},
+			color: "#cc7"
+		},
+		32: {
+			title: "Toy megacollection",
+			display() {
+				return `It grows, larger.<br>
+				Size: ${formatWhole(player.g.buyables[32])}
+				+${format(tmp.g.buyables[32].effect.joy)} joy
+				x${format(tmp.g.buyables[32].effect.toys)} to toy gain<br>
+				${format(player.g.buyables[31])}/${format(tmp.g.buyables[32].cost)} toy collections`
+			},
+			buy() {
+				player.g.buyables[31] = player.g.buyables[31].sub(tmp.g.buyables[32].cost);
+				player.g.buyables[32] = player.g.buyables[32].add(1);
+			},
+			effect() { return {
+				joy: player.g.buyables[32].mul(3).min(20),
+				toys: player.g.buyables[32].add(1).pow(1.5)
+			}},
+			cost() {
+				return Decimal.pow(2, player.g.buyables[32]).mul(300);
+			},
+			canAfford() {
+				return player.g.buyables[31].gte(tmp.g.buyables[32].cost);
+			},
+			unlocked() {
+				return hasUpgrade("m", 14)
 			},
 			color: "#cc7"
 		}
@@ -224,6 +326,34 @@ addLayer("g", {
 				return hasUpgrade("g", 12)
 			}
 		},
+		14: {
+			title: "The Tree of Life",
+			description: "The bonfire is given more room, making it last longer and have better effects.",
+			cost: 2e7,
+			currencyLocation() {
+				return player.g.fire
+			},
+			currencyInternalName: "points",
+			currencyDisplayName: "bonfire",
+			color: "#f40",
+			unlocked() {
+				return hasUpgrade("g", 12)
+			}
+		},
+		15: {
+			title: "Huh?",
+			description: "Unlock two coal \"buyables\". What the hell is a buyable anyway?",
+			cost: 1.6e8,
+			currencyLocation() {
+				return player.g.fire
+			},
+			currencyInternalName: "points",
+			currencyDisplayName: "bonfire",
+			color: "#f40",
+			unlocked() {
+				return hasUpgrade("g", 12)
+			}
+		},
 		41: {
 			title: "Good Deeds",
 			description: "Give away a 4th of your presents each time for a small chance of getting some toys.",
@@ -239,7 +369,18 @@ addLayer("g", {
 			currencyInternalName: "points",
 			currencyDisplayName: "toys",
 			color: "#cc7"
-		}
+		},
+		/*72: {
+			title: "Generous Collecting",
+			description: "I mean, wouldn't it be better if you could collect all your toys at once?",
+			cost: 1e5,
+			currencyLocation() {
+				return player.g.toys
+			},
+			currencyInternalName: "points",
+			currencyDisplayName: "toys",
+			color: "#cc7"
+		}*/
 	},
 	giftEffects: ["goodDeeds"],
 	milestones: {
@@ -281,11 +422,12 @@ addLayer("g", {
 	},
 
 	fireEffect() {
-		return player.g.fire.points.add(1).log10();
+		return player.g.fire.points.add(1).log10().pow(hasUpgrade("g", 14) ? 1.2 : 1);
 	},
 	fireMult() {
 		let base = decimalOne;
 		if (hasUpgrade("g", 13)) base = base.mul(2);
+		base = base.mul(tmp.g.buyables[21].effect);
 		return base;
 	},
 
@@ -298,13 +440,17 @@ addLayer("g", {
 		}
 		player.g.waitTime = player.g.waitTime.sub(player.g.waitTime.div(10).floor().mul(10));
 
-		player.g.fire.points = player.g.fire.points.mul(Decimal.pow(0.98, d))
+		player.g.fire.points = player.g.fire.points.mul(Decimal.pow(hasUpgrade("g", 14) ? 0.999 : 0.98, d))
 		addGiftRewards("fire", player.g.coalBurning.sub(player.g.coalBurning.mul(Decimal.pow(0.98, d))).mul(tmp.g.fireMult));
 		player.g.coalBurning = player.g.coalBurning.mul(Decimal.pow(0.98, d));
 	},
 	automate() {
 		if (player.g.collectToys && hasMilestone("g", 200))
 			buyBuyable("g", 31);
+
+		if (player.mc.giftAuto)
+			for (let i = 0; i < tmp.mc.buyables.giftAuto.effect; i++)
+				clickClickable("g", 11, true);
 	},
 	tabFormat: {
 		Main: {
@@ -318,14 +464,14 @@ addLayer("g", {
 				resourceAmt() {return player.g.coal.points},
 				color: "#666",
 				precision: 2
-			}], "blank", ["buyables", [1]], "blank", ["upgrades", [1]],
+			}], "blank", ["buyables", [1, 2]], "blank", ["upgrades", [1]],
 			["currency-display", {
 				resource: "bonfire",
 				resourceAmt() {return player.g.fire.points},
 				color: "#f40",
 				precision: 2,
 				effectDescription() {
-					return `giving +${format(tmp.g.fireEffect)} to joy, but you are losing 2% of it every second`
+					return `giving +${format(tmp.g.fireEffect)} to joy, but you are losing ${hasUpgrade("g", 14) ? 0.1 : 2}% of it every second`
 				}
 			}, () => hasUpgrade("g", 12)], ["clickable", 31], "blank", ["raw-html", () => {
 				return `You have ${format(player.g.coalBurning)} coal in the burning pile, but 2% of it is being burnt every second.<br><br><br>`
@@ -377,6 +523,7 @@ addLayer("g", {
 			unlocked() {return hasUpgrade("g", 41)},
 			gain() {
 				let base = new Decimal(3);
+				base = base.mul(tmp.g.buyables[32].effect.toys);
 				return base;
 			}
 		}
@@ -394,6 +541,7 @@ addLayer("g", {
 		let base = decimalZero;
 		base = base.add(tmp.g.buyables[31].effect);
 		base = base.add(tmp.g.fireEffect);
+		base = base.add(tmp.g.buyables[32].effect.joy);
 		if (hasUpgrade("m", 11)) base = base.add(4);
 		return base;
 	},

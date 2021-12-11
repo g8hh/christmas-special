@@ -524,7 +524,6 @@ function loadVue() {
 			<span v-for="(node, id) in row" style = "{width: 0px}">
 				<tree-node :layer='node' :prev='layer' :abb='tmp[node].symbol' :key="key + '-' + r + '-' + id"></tree-node>
 			</span>
-			<tr><table><button class="treeNode hidden"></button></table></tr>
 		</span></div>
 
 	`
