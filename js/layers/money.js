@@ -103,7 +103,10 @@ addLayer("m", {
 			color() {
 				return player.m.nullEffects.includes("gift") ? "#77bf5f" : "#4BDC13";
 			},
-			style: {"min-height": "75px", margin: "3px", "font-size": "12px"}
+			style: {"min-height": "75px", margin: "3px", "font-size": "12px"},
+			unlocked() {
+				return hasUpgrade("m", 15)
+			}
 		},
 		12: {
 			display() {
@@ -119,7 +122,10 @@ addLayer("m", {
 			color() {
 				return player.m.nullEffects.includes("money") ? "#77bf5f" : "#ff0";
 			},
-			style: {"min-height": "75px", margin: "3px", "font-size": "12px"}
+			style: {"min-height": "75px", margin: "3px", "font-size": "12px"},
+			unlocked() {
+				return hasUpgrade("m", 15)
+			}
 		},
 		13: {
 			display() {
@@ -135,7 +141,10 @@ addLayer("m", {
 			color() {
 				return player.m.nullEffects.includes("machine") ? "#77bf5f" : "#c73";
 			},
-			style: {"min-height": "75px", margin: "3px", "font-size": "12px"}
+			style: {"min-height": "75px", margin: "3px", "font-size": "12px"},
+			unlocked() {
+				return hasUpgrade("m", 15)
+			}
 		},
 		masterButtonText: "Reset Effects",
 		masterButtonPress() {player.m.nullEffects = []}
