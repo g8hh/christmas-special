@@ -342,7 +342,7 @@ addLayer("mc", {
 			effect() {
 				return {
 					coal: hasUpgrade("mc", "mine") ? tmp.g.giftTypes.coal.gain.mul(tmp.g.globalRewardMulti).mul(Decimal.pow(2, player.mc.buyables.mine)).mul(100) : decimalZero,
-					toys: 9 - (player.mc.buyables.mine.add(1).sqrt().recip().mul(9)).toNumber()
+					toys: 9 - (player.mc.buyables.mine.add(1).sqrt().recip().mul(8)).toNumber()
 				}
 			},
 			unlocked() {
