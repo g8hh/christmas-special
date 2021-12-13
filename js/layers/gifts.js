@@ -1,3 +1,43 @@
+const gameClickable = {
+	display() {
+		return `${format(Math.min(tmp.g.clickables[this.id].chance*100, 100))}% chance of winning<br>
+		${player.g.games.gameState[this.id] ? "" : `Attempt: ${format(tmp.g.clickables[this.id].cost)} games<br>`
+		}${player.g.games.gameLastSuccessful[this.id] == 1 ? "<span style='color: #070'>You won!</span>" : (player.g.games.gameLastSuccessful[this.id] == 0 ? "<span style='color: #700'>You lost! Better luck next time.</span>" :"")}`
+	},
+	cost() {
+		let base = new Decimal(1);
+		base = base.mul(player.g.ascensions.total.add(1).pow(2)).mul(Decimal.pow(2, player.g.ascensions.total.pow(1.2)));
+		return base;
+	},
+	canClick() {
+		return player.g.games.gameState[this.id] || player.g.games.points.gte(tmp.g.clickables[this.id].cost);
+	},
+	onClick() {
+		if (player.g.games.gameState[this.id]) return;
+		player.g.games.points = player.g.games.points.sub(tmp.g.clickables[this.id].cost);
+		if (Math.random() <= tmp.g.clickables[this.id].chance) {
+			player.g.games.gameState[this.id] = true;
+			player.g.games.gameLastSuccessful[this.id] = 1;
+		} else {
+			player.g.games.gameLastSuccessful[this.id] = 0;
+		}
+	},
+	onHold() {
+		this.onClick();
+	},
+	chance() {
+		let base = new Decimal(0.1);
+		base = base.mul(Decimal.pow(0.5, player.g.ascensions.total));
+		for (let i of this.skills)
+			base = base.mul(tmp.g.buyables[i].effect);
+		base = base.mul(hasUpgrade("g", 202) ? player.g.buyables[121].mul(0.3).pow(1.3).add(1) : 1);
+		return base.toNumber();
+	},
+	color() {
+		return player.g.games.gameState[this.id] ? "#77bf5f" : "#3ad";
+	}
+}
+
 addLayer("g", {
 	name: "gift",
 	symbol: "G",
@@ -19,7 +59,25 @@ addLayer("g", {
 			best: new Decimal(0),
 			total: new Decimal(0)
 		},
+		games: {
+			points: new Decimal(0),
+			best: new Decimal(0),
+			total: new Decimal(0),
+			gameState: {
+				71: false, 72: false, 73: false,
+				81: false, 82: false, 83: false
+			},
+			gameLastSuccessful: {
+				71: -1, 72: -1, 73: -1,
+				81: -1, 82: -1, 83: -1
+			}
+		},
 		fire: {
+			points: new Decimal(0),
+			best: new Decimal(0),
+			total: new Decimal(0)
+		},
+		ascensions: {
 			points: new Decimal(0),
 			best: new Decimal(0),
 			total: new Decimal(0)
@@ -27,6 +85,8 @@ addLayer("g", {
 		coalBurning: new Decimal(0),
 		goodDeeds: false,
 		goodDeedsGifts: new Decimal(0),
+		phaseDiagram: false,
+		phaseDiagramGifts: new Decimal(0),
 		collectToys: false
 	}},
 	color: "#4BDC13",
@@ -35,17 +95,21 @@ addLayer("g", {
 		let base = new Decimal(1.25);
 		if (hasUpgrade("g", 11)) base = base.mul(2);
 		if (hasUpgrade("m", 12)) base = base.mul(2);
+		base = base.mul(tmp.mc.buyables.timeWarp.effect);
 		return base;
 	},
 	giftMulti() {
 		let base = decimalOne;
 		base = base.mul(tmp.g.buyables[11].effect);
-		if (player.g.goodDeeds) base = base.mul(0.75).floor()
-		return base; 
+		if (player.g.goodDeeds) base = base.mul(0.75);
+		base = base.mul(tmp.g.joyEffects.giftGainMult);
+		if (hasUpgrade("mc", 11)) base = base.mul(100);
+		return base.floor(); 
 	},
 	globalRewardMulti() {
 		let base = decimalOne;
 		base = base.mul(tmp.g.joyEffects.giftMult);
+		base = base.mul(tmp.m.buyables[11].effect.gift);
 		return base;
 	},
 	row: 0,
@@ -113,7 +177,8 @@ addLayer("g", {
 				if (player.g.buyables[31].lt(100)) return decimalZero;
 				let base = player.g.buyables[31].div(100);
 				base = base.mul(tmp.mc.buyables.printer.effect);
-				base = base.mul(tmp.g.buyables[22].effect)
+				base = base.mul(tmp.g.buyables[22].effect);
+				base = base.mul(tmp.m.buyables[11].effect.money);
 				return base;
 			},
 			color: "#cc7",
@@ -123,6 +188,43 @@ addLayer("g", {
 				'border-radius': '25%',
 				border: '4px solid',
 				'border-color': 'rgba(0, 0, 0, 0.125)',
+			}
+		},
+		71: {title: "Minceraft", skills: [101, 111], ...gameClickable},
+		72: {title: "DOM", skills: [101, 102], ...gameClickable},
+		73: {title: "Teleportal", skills: [102, 112], ...gameClickable},
+		81: {title: "Seleste", skills: [102, 111], ...gameClickable},
+		82: {title: "The Cable", skills: [111, 112], ...gameClickable},
+		83: {title: "Hexis", skills: [101, 112], ...gameClickable},
+		91: {
+			title: "Ascend.",
+			display: "After completing all games, ascend to gain +1 ascension.",
+			canClick() {
+				return player.g.games.gameState[71] && player.g.games.gameState[72] && player.g.games.gameState[73] &&
+				player.g.games.gameState[81] && player.g.games.gameState[82] && player.g.games.gameState[83]
+			},
+			onClick() {
+				addGiftRewards("ascensions", 1);
+				player.g.games.gameState[71] = false;
+				player.g.games.gameState[72] = false;
+				player.g.games.gameState[73] = false;
+				player.g.games.gameState[81] = false;
+				player.g.games.gameState[82] = false;
+				player.g.games.gameState[83] = false;
+			},
+			color: "#94f"
+		},
+		101: {
+			title: "Respec ascension upgrades",
+			canClick() { return true },
+			onClick() {
+				player.g.upgrades = player.g.upgrades.filter(_ => _ < 200);
+				player.g.ascensions.points = player.g.ascensions.total;
+			},
+			color: "#94f",
+			style: {
+				"min-height": "30px",
+				width: "150px"
 			}
 		}
 	},
@@ -235,20 +337,22 @@ addLayer("g", {
 				player.g.toys.points = player.g.toys.points.sub(tmp.g.buyables[31].cost);
 				player.g.buyables[31] = player.g.buyables[31].add(1);
 			},
-			/*buyMax() {
+			buyMax() {
 				let amt;
-				if (player.g.buyables[31].lt(100)) amt = player.g.toys.points.div(30).min(new Decimal(100).sub(player.g.buyables[31]));
-				else {
-					let p = player.g.toys.points;
-					let previousCost = player.g.buyables[31].pow(2).add(player.g.buyables[31]).mul(0.75).sub(player.g.buyables[31].mul(120));
-					const a = new Decimal(0.75),
-						b = new Decimal(-119.25);
-						c = previousCost.neg().sub(player.g.toys.points);
-
-					amt = b.neg().add(b.pow(2).sub(a.mul(c).mul(4)).sqrt()).div(a.mul(2));
+				if (player.g.buyables[31].lt(100)) {
+					amt = player.g.toys.points.div(30).min(new Decimal(100).sub(player.g.buyables[31]));
+					player.g.toys.points = player.g.toys.points.sub(amt.floor().mul(30));
+				} else {
+					const p = player.g.toys.points,
+						bu = player.g.buyables[31],
+						a = new Decimal(0.75),
+						b = bu.sub(80).mul(1.5),
+						c = p.neg();
+					amt = b.neg().add(b.mul(b).sub(a.mul(c).mul(4)).sqrt()).div(a.mul(2)).floor();
+					player.g.toys.points = player.g.toys.points.sub(amt.mul(amt).mul(a).add(amt.mul(b)));
 				}
-				player.g.buyables[31] = player.g.buyables[31].add(amt);
-			},*/
+				player.g.buyables[31] = player.g.buyables[31].add(amt).floor();
+			},
 			effect() {
 				return softcap(player.g.buyables[31].sqrt(), new Decimal(30), 0.5);
 			},
@@ -274,7 +378,7 @@ addLayer("g", {
 				player.g.buyables[32] = player.g.buyables[32].add(1);
 			},
 			effect() { return {
-				joy: player.g.buyables[32].mul(3).min(20),
+				joy: player.g.buyables[32].mul(3).min(30),
 				toys: player.g.buyables[32].add(1).pow(1.5)
 			}},
 			cost() {
@@ -287,6 +391,142 @@ addLayer("g", {
 				return hasUpgrade("m", 14)
 			},
 			color: "#cc7"
+		},
+		101: {
+			title: "Quick Wits",
+			display() {
+				return `Improve chances of winning Minceraft, DOM and Hexis by x${format(tmp.g.buyables[this.id].effect)}.<br>
+				${format(player.g.games.points)}/${format(tmp.g.buyables[this.id].cost)} games`
+			},
+			buy() {
+				player.g.games.points = player.g.games.points.sub(tmp.g.buyables[this.id].cost);
+				player.g.buyables[this.id] = player.g.buyables[this.id].add(1);
+			},
+			effect() {
+				return hasUpgrade("g", 202) ? Decimal.pow(2, player.g.buyables[this.id].pow(0.8)) : decimalOne
+			},
+			cost() {
+				return Decimal.pow(2.5, player.g.buyables[this.id].pow(1.3)).mul(100);
+			},
+			canAfford() {
+				return player.g.games.points.gte(tmp.g.buyables[this.id].cost);
+			},
+			unlocked() {
+				return hasUpgrade("g", 202)
+			},
+			color: "linear-gradient(#4f869e, #6f4d99)",
+			style: {
+				width: "120px", height: "120px"
+			}
+		},
+		102: {
+			title: "Fine Control",
+			display() {
+				return `Improve chances of winning Seleste, DOM and Teleportal by x${format(tmp.g.buyables[this.id].effect)}.<br>
+				${format(player.g.games.points)}/${format(tmp.g.buyables[this.id].cost)} games`
+			},
+			buy() {
+				player.g.games.points = player.g.games.points.sub(tmp.g.buyables[this.id].cost);
+				player.g.buyables[this.id] = player.g.buyables[this.id].add(1);
+			},
+			effect() {
+				return hasUpgrade("g", 202) ? Decimal.pow(2, player.g.buyables[this.id].pow(0.8)) : decimalOne
+			},
+			cost() {
+				return Decimal.pow(2.5, player.g.buyables[this.id].pow(1.3)).mul(100);
+			},
+			canAfford() {
+				return player.g.games.points.gte(tmp.g.buyables[this.id].cost);
+			},
+			unlocked() {
+				return hasUpgrade("g", 202)
+			},
+			color: "linear-gradient(#4f869e, #6f4d99)",
+			style: {
+				width: "120px", height: "120px"
+			}
+		},
+		111: {
+			title: "Reaction",
+			display() {
+				return `Improve chances of winning Minceraft, Seleste and The Cable by x${format(tmp.g.buyables[this.id].effect)}.<br>
+				${format(player.g.games.points)}/${format(tmp.g.buyables[this.id].cost)} games`
+			},
+			buy() {
+				player.g.games.points = player.g.games.points.sub(tmp.g.buyables[this.id].cost);
+				player.g.buyables[this.id] = player.g.buyables[this.id].add(1);
+			},
+			effect() {
+				return hasUpgrade("g", 202) ? Decimal.pow(2, player.g.buyables[this.id].pow(0.8)) : decimalOne
+			},
+			cost() {
+				return Decimal.pow(2.5, player.g.buyables[this.id].pow(1.3)).mul(100);
+			},
+			canAfford() {
+				return player.g.games.points.gte(tmp.g.buyables[this.id].cost);
+			},
+			unlocked() {
+				return hasUpgrade("g", 202)
+			},
+			color: "linear-gradient(#4f869e, #6f4d99)",
+			style: {
+				width: "120px", height: "120px"
+			}
+		},
+		112: {
+			title: "Puzzle",
+			display() {
+				return `Improve chances of winning Teleportal, Hexis and The Cable by x${format(tmp.g.buyables[this.id].effect)}.<br>
+				${format(player.g.games.points)}/${format(tmp.g.buyables[this.id].cost)} games`
+			},
+			buy() {
+				player.g.games.points = player.g.games.points.sub(tmp.g.buyables[this.id].cost);
+				player.g.buyables[this.id] = player.g.buyables[this.id].add(1);
+			},
+			effect() {
+				return hasUpgrade("g", 202) ? Decimal.pow(2, player.g.buyables[this.id].pow(0.8)) : decimalOne
+			},
+			cost() {
+				return Decimal.pow(2.5, player.g.buyables[this.id].pow(1.3)).mul(100);
+			},
+			canAfford() {
+				return player.g.games.points.gte(tmp.g.buyables[this.id].cost);
+			},
+			unlocked() {
+				return hasUpgrade("g", 202)
+			},
+			color: "linear-gradient(#4f869e, #6f4d99)",
+			style: {
+				width: "120px", height: "120px"
+			}
+		},
+		121: {
+			title: "Omniskill",
+			display() {
+				return `Boost games gain, and additionally increase the chances of every single game.<br>
+				x${format(tmp.g.buyables[this.id].effect)} to games gain<br>
+				${format(player.g.games.points)}/${format(tmp.g.buyables[this.id].cost)} games`
+			},
+			buy() {
+				player.g.games.points = player.g.games.points.sub(tmp.g.buyables[this.id].cost);
+				player.g.buyables[this.id] = player.g.buyables[this.id].add(1);
+			},
+			effect() {
+				return hasUpgrade("g", 202) ? Decimal.pow(4, player.g.buyables[121].pow(0.8)) : decimalOne
+			},
+			cost() {
+				return Decimal.pow(3, player.g.buyables[this.id].pow(1.4)).mul(300);
+			},
+			canAfford() {
+				return player.g.games.points.gte(tmp.g.buyables[121].cost);
+			},
+			unlocked() {
+				return hasUpgrade("g", 202)
+			},
+			color: "linear-gradient(#6aafbd, #8f6fc1)",
+			style: {
+				width: "120px", height: "120px"
+			}
 		}
 	},
 	upgrades: {
@@ -359,6 +599,16 @@ addLayer("g", {
 			description: "Give away a 4th of your presents each time for a small chance of getting some toys.",
 			cost: 80
 		},
+		42: {
+			title: "Phase Diagram",
+			description: "Halve your gift rewards, but have a 10% chance of getting 40x more rewards.<br><i>Gacha game much?</i>",
+			cost: 2222222
+		},
+		43: {
+			title: "Amazing Deeds",
+			description: "Have an extremely small chance of getting an actual game. (Santa is hard to impress.)",
+			cost: 2e10
+		},
 		71: {
 			title: "Generous Donation",
 			description: "Might as well go the whole way and bump your good deeds up even more.",
@@ -370,7 +620,7 @@ addLayer("g", {
 			currencyDisplayName: "toys",
 			color: "#cc7"
 		},
-		/*72: {
+		72: {
 			title: "Generous Collecting",
 			description: "I mean, wouldn't it be better if you could collect all your toys at once?",
 			cost: 1e5,
@@ -380,9 +630,59 @@ addLayer("g", {
 			currencyInternalName: "points",
 			currencyDisplayName: "toys",
 			color: "#cc7"
-		}*/
+		},
+		91: {
+			title: "Play with Money",
+			description: "You can activate two <b>Null</b> effects at once. It's not so specialised after all.",
+			cost: 750,
+			currencyLocation() {
+				return player.g.games
+			},
+			currencyInternalName: "points",
+			currencyDisplayName: "games",
+			color: "#3ad"
+		},
+		201: {
+			title: "Ascension I",
+			description: "Boost games gain by x6, but <b>Phase Diagram</b> no longer affects games.",
+			cost: 1,
+			currencyLocation() {
+				return player.g.ascensions
+			},
+			currencyInternalName: "points",
+			currencyDisplayName: "ascensions",
+			color: "#94f"
+		},
+		202: {
+			title: "Ascension II",
+			description: "Unlock skilling.",
+			cost: 3,
+			currencyLocation() {
+				return player.g.ascensions
+			},
+			currencyInternalName: "points",
+			currencyDisplayName: "ascensions",
+			color: "#94f"
+		},
+		203: {
+			title: "Ascension III",
+			description: "Boost games gain based on ascensions.",
+			cost: 5,
+			currencyLocation() {
+				return player.g.ascensions
+			},
+			currencyInternalName: "points",
+			currencyDisplayName: "ascensions",
+			color: "#94f",
+			effect() {
+				return Decimal.pow(1.8, player.g.ascensions.total);
+			},
+			effectDisplay() {
+				return `x${format(tmp.g.upgrades[203].effect)}`
+			}
+		}
 	},
-	giftEffects: ["goodDeeds"],
+	giftEffects: ["goodDeeds", "phaseDiagram"],
 	milestones: {
 		0: {
 			requirementDescription: "Good Deeds Reward",
@@ -394,12 +694,36 @@ addLayer("g", {
 				return hasUpgrade("g", 41)
 			}
 		},
+		1: {
+			requirementDescription: "Phase Diagram Reward",
+			toggles: [["g", "phaseDiagram"]],
+			done() {
+				return hasUpgrade("g", 42)
+			},
+			unlocked() {
+				return hasUpgrade("g", 42)
+			}
+		},
 		200: {
 			requirementDescription: "50 toy collections",
 			effectDescription: "Automatically collect toys.",
 			toggles: [["g", "collectToys"]],
 			done() {
 				return player.g.buyables[31].gte(50)
+			}
+		},
+		400: {
+			requirementDescription: "3 total ascensions",
+			effectDescription: "Gain 18.1% of money gain on reset per second. Is this an AD clone?",
+			done() {
+				return player.g.ascensions.total.gte(3);
+			}
+		},
+		401: {
+			requirementDescription: "6 total ascensions",
+			effectDescription: "Automatically add 18.1% of your current coal to the burning pile without actually depleting any coal. Magic?",
+			done() {
+				return player.g.ascensions.total.gte(6);
 			}
 		}
 	},
@@ -412,7 +736,7 @@ addLayer("g", {
 				return tmp.g.waitTimeGain.gte(60) ? 1 : player.g.waitTime.div(10)
 			},
 			display() {
-				if (tmp.g.waitTimeGain.gte(60)) return `${tmp.g.giftMulti.mul(tmp.g.waitTimeGain).div(10)} gifts/s`
+				if (tmp.g.waitTimeGain.gte(60)) return `${format(tmp.g.giftMulti.mul(tmp.g.waitTimeGain).div(10))} gifts/s`
 				return `${format(player.g.waitTime.neg().add(10).div(tmp.g.waitTimeGain), 3)}s til next gift`
 			},
 			fillStyle: {
@@ -443,19 +767,27 @@ addLayer("g", {
 		player.g.fire.points = player.g.fire.points.mul(Decimal.pow(hasUpgrade("g", 14) ? 0.999 : 0.98, d))
 		addGiftRewards("fire", player.g.coalBurning.sub(player.g.coalBurning.mul(Decimal.pow(0.98, d))).mul(tmp.g.fireMult));
 		player.g.coalBurning = player.g.coalBurning.mul(Decimal.pow(0.98, d));
+
+		if (hasMilestone("g", 400))
+			addPoints("m", tmp.g.clickables[51].reward.mul(d*0.181));
+		if (hasMilestone("g", 401))
+			player.g.coalBurning = player.g.coalBurning.add(player.g.coal.points.mul(0.181*d));
 	},
 	automate() {
 		if (player.g.collectToys && hasMilestone("g", 200))
-			buyBuyable("g", 31);
+			if (hasUpgrade("g", 72))
+				buyMaxBuyable("g", 31);
+			else
+				buyBuyable("g", 31);
 
-		if (player.mc.giftAuto)
+		if (player.mc.giftAuto && player.devSpeed > 1e-5)
 			for (let i = 0; i < tmp.mc.buyables.giftAuto.effect; i++)
 				clickClickable("g", 11, true);
 	},
 	tabFormat: {
 		Main: {
 			content: ["main-display", "resource-display", ["clickable", 11], "blank", ["bar", "giftProgress"], "blank",
-			"gift-display", "blank", ["milestones", [0]], ["upgrades", [4]]]
+			"gift-display", "blank", ["milestones", [0, 1]], ["upgrades", [4]]]
 		},
 		Coal: {
 			content: ["main-display", "resource-display", ["clickable", 11], "blank", ["bar", "giftProgress"], "blank",
@@ -491,6 +823,25 @@ addLayer("g", {
 			unlocked() {
 				return player.g.toys.total.gt(0)
 			}
+		},
+		Games: {
+			content: ["main-display", "resource-display", ["clickable", 11], "blank", ["bar", "giftProgress"], "blank",
+			["currency-display", {
+				resource: "games",
+				resourceAmt() {return player.g.games.points},
+				color: "#3ad",
+				precision: 2
+			}], "blank", ["upgrades", [9]], "blank", ["row", [["buyables", [10]], ["buyables", [11]]]], ["buyable", 121],
+			"blank", ["clickables", [7, 8, 9]], "blank", ["currency-display", {
+				resource() {
+					return "ascensions (" + formatWhole(player.g.ascensions.total) + " total)" 
+				},
+				resourceAmt() {return player.g.ascensions.points},
+				color: "#94f",
+			}], ["milestones", [400]], ["clickable", 101], "blank", ["upgrades", [20]]],
+			unlocked() {
+				return player.g.games.total.gt(0)
+			}
 		}
 	},
 	giftTypes: {
@@ -500,7 +851,7 @@ addLayer("g", {
 			displayTitle: "Naughty",
 			chance() {
 				let base = decimalOne;
-				if (player.g.goodDeedsGifts.gte(1)) base = base.sub(0.1);
+				if (player.g.goodDeedsGifts.gte(1)) base = base.sub(0.1*tmp.mc.buyables.mine.effect.toys);
 				return base;
 			},
 			unlocked: true,
@@ -516,7 +867,7 @@ addLayer("g", {
 			displayTitle: "Less Naughty",
 			chance() {
 				let base = decimalZero;
-				if (player.g.goodDeedsGifts.gte(1)) base = base.add(0.1);
+				if (player.g.goodDeedsGifts.gte(1)) base = base.add(0.1*tmp.mc.buyables.mine.effect.toys);
 				if (hasUpgrade("g", 71)) base = base.mul(2);
 				return base;
 			},
@@ -524,6 +875,25 @@ addLayer("g", {
 			gain() {
 				let base = new Decimal(3);
 				base = base.mul(tmp.g.buyables[32].effect.toys);
+				return base;
+			}
+		},
+		games: {
+			colour: "#3ad",
+			currencyName: "Games",
+			displayTitle: "Not Naughty",
+			chance() {
+				let base = decimalZero;
+				if (hasUpgrade("g", 43)) base = base.add(3e-4);
+				return base;
+			},
+			unlocked() {return hasUpgrade("g", 43)},
+			noCrit() {return hasUpgrade("g", 201)},
+			gain() {
+				let base = new Decimal(4e-11);
+				if (hasUpgrade("g", 201)) base = base.mul(6);
+				base = base.mul(tmp.g.buyables[121].effect);
+				if (hasUpgrade("g", 203)) base = base.mul(tmp.g.upgrades[203].effect)
 				return base;
 			}
 		}
@@ -551,6 +921,9 @@ addLayer("g", {
 		},
 		giftAmount() {
 			return tmp.g.joy.gte(18.88) ? tmp.g.joy.sub(17.38).div(1.5).pow(0.3).floor().min(6).toNumber() : 0
+		},
+		giftGainMult() {
+			return tmp.g.joy.gte(50) ? tmp.g.joy.sub(48.5).sqrt() : 1
 		}
 	},
 	doReset() {}
@@ -567,7 +940,7 @@ function rewardCount() {
 	return base;
 }
 function openGift() {
-	const luck = Math.random()*0.5 + 0.5;
+	let luck = Math.random()*0.5 + 0.5;
 	player.g.giftDisplay.splice(0, player.g.giftDisplay.length);
 	let effects = [];
 	for (i of tmp.g.giftEffects) {
@@ -589,6 +962,9 @@ function openGift() {
 					break;
 			}
 		}
+		let tempLuck = 1;
+		if (effects.includes("Phase Diagram") && !tmp.g.giftTypes[reward].noCrit)
+			tempLuck *= (Math.random() > 0.9)*19.5 + 0.5;
 		let amt = tmp.g.giftTypes[reward].gain.mul(luck).mul(tmp.g.globalRewardMulti);
 		player.g.giftDisplay.push({amt, id: reward});
 		addGiftRewards(reward, amt);
@@ -610,6 +986,12 @@ const giftRewardsComponent = {
 				That's even less sad. Have even more rewards!<br>
 				<span style="color: #f22">
 					+{{formatWhole(tmp.g.joyEffects.giftAmount)}} rewards when opening gifts<br><br>
+				</span>
+			</span>
+			<span v-if="tmp.g.joy.gte(50)">
+				That's pretty happy if I must say. Have even more rewards!<br>
+				<span style="color: #f22">
+					x{{format(tmp.g.joyEffects.giftGainMult)}} to gift gain<br><br>
 				</span>
 			</span>
 			<br v-if="tmp.g.joy.lt(1)">
