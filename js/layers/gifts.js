@@ -780,7 +780,7 @@ addLayer("g", {
 			else
 				buyBuyable("g", 31);
 
-		if (player.mc.giftAuto && player.devSpeed > 1e-5)
+		if (player.mc.giftAuto && (player.devSpeed > 1e-5 || player.devSpeed == undefined)) 
 			for (let i = 0; i < tmp.mc.buyables.giftAuto.effect; i++)
 				clickClickable("g", 11, true);
 	},
