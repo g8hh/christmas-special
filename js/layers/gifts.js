@@ -838,7 +838,7 @@ addLayer("g", {
 				},
 				resourceAmt() {return player.g.ascensions.points},
 				color: "#94f",
-			}], ["milestones", [400]], ["clickable", 101], "blank", ["upgrades", [20]]],
+			}], ["milestones", [400, 401]], ["clickable", 101], "blank", ["upgrades", [20]]],
 			unlocked() {
 				return player.g.games.total.gt(0)
 			}
