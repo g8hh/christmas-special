@@ -59,12 +59,14 @@ addLayer("m", {
 				${format(player.m.points)}/${format(tmp.m.buyables[11].cost)} money`
 			},
 			buy() {
-				player.m.points = player.m.points.sub(tmp.m.buyables[this.id].cost);
+				if (!hasUpgrade("mc", 22)) player.m.points = player.m.points.sub(tmp.m.buyables[this.id].cost);
 				player.m.spentOnBuyables = player.m.spentOnBuyables.add(tmp.m.buyables[this.id].cost);
 				player.m.buyables[this.id] = player.m.buyables[this.id].add(1);
 			},
 			cost() {
-				return Decimal.pow(2, player.m.buyables[11]).mul(10000);
+				let base = Decimal.pow(2, player.m.buyables[11]).mul(10000);
+				if (hasUpgrade("g", 95)) base = base.div(tmp.g.upgrades[95].effect)
+				return base;
 			},
 			canAfford() {
 				return player.m.points.gte(tmp.m.buyables[11].cost);
@@ -87,6 +89,7 @@ addLayer("m", {
 		maxLen() {
 			let base = 1;
 			if (hasUpgrade("g", 91)) base++;
+			if (hasUpgrade("mc", 22)) base++;
 			return base;
 		},
 		11: {
@@ -153,6 +156,10 @@ addLayer("m", {
 	hotkeys: [
 		{key: "m", description: "M: Sell toy collection", onPress(){clickClickable("g", 51)}}
 	],
+	automate() {
+		if (hasUpgrade("mc", 22))
+			buyBuyable("m", 11);
+	},
 	branches: ["g"],
 	tabFormat: {
 		Main: {
@@ -195,12 +202,54 @@ addLayer("mc", {
 	},
 
 	upgrades: {
-		rows: 1,
-		cols: 1,
+		rows: 4,
+		cols: 3,
 		11: {
 			title: "Opus Magnum",
-			description: "Make Santa impressed enough to give up a hundred times more gifts.",
-			cost: 1e30
+			description: "Make Santa impressed enough to give a hundred times more gifts.",
+			cost: 1e30,
+		},
+		21: {
+			title: "Opus Magnum",
+			description: "Make Santa impressed enough to give a hundred times more coal.",
+			cost: 1e55,
+			unlocked() {
+				return hasUpgrade("mc", 22)
+			}
+		},
+		23: {
+			title: "Opus Magnum",
+			description: "Make Santa impressed enough to give a hundred times more toys.",
+			cost: 1e65,
+			unlocked() {
+				return hasUpgrade("mc", 22)
+			}
+		},
+		31: {
+			title: "Opus Magnum",
+			description: "Make Santa impressed enough to give a hundred times more games.",
+			cost: 1e100,
+			unlocked() {
+				return hasUpgrade("mc", 22)
+			}
+		},
+		22: {
+			title: "Supreme Automata",
+			description: "Autobuy <b>Toy megacollections</b> and all buyables within the coal layer, and they don't spend anything. You can select another <b>Null</b> effect. Autobuy <b>Null</b>, and it spends nothing.",
+			cost: 1e45,
+			unlocked() {
+				return hasUpgrade("mc", 11);
+			},
+			style: {width: "180px", height: "180px"}
+		},
+		41: {
+			title: "Santa's Ultimate Gift",
+			description: "What could it be?",
+			cost: 1e150,
+			unlocked() {
+				return hasUpgrade("mc", 31)
+			},
+			style: {width: "240px", height: "240px", margin: "20px auto", "font-size": "15px"}
 		},
 		printer: {
 			title: "Printer go brr",
