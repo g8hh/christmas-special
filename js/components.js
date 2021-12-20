@@ -191,7 +191,7 @@ function loadVue() {
 				<span v-if= "tmp[layer].upgrades[data].title"><h3 v-html="tmp[layer].upgrades[data].title"></h3><br></span>
 				<span v-html="tmp[layer].upgrades[data].description"></span>
 				<span v-if="layers[layer].upgrades[data].effectDisplay"><br>Currently: <span v-html="run(layers[layer].upgrades[data].effectDisplay, layers[layer].upgrades[data])"></span></span>
-				<br><br>Cost: {{ formatWhole(tmp[layer].upgrades[data].cost) }} {{(tmp[layer].upgrades[data].currencyDisplayName ? tmp[layer].upgrades[data].currencyDisplayName : tmp[layer].resource)}}
+				<br><br>Cost: {{ formatWhole(tmp[layer].upgrades[data].cost) }} <span v-html="(tmp[layer].upgrades[data].currencyDisplayName ? tmp[layer].upgrades[data].currencyDisplayName : tmp[layer].resource)"></span>
 			</span>
 			<tooltip v-if="tmp[layer].upgrades[data].tooltip" :text="tmp[layer].upgrades[data].tooltip"></tooltip>
 
@@ -255,7 +255,7 @@ function loadVue() {
 	Vue.component('currency-display', {
 		props: ['layer', 'data'],
 		template: `
-		<div style="margin: 0 10px"><span v-if="player[layer].points.lt('1e1000')">You have </span><h2 v-bind:style="{'color': data.color || tmp[layer].color, 'text-shadow': '0px 0px 10px'}">{{data.precision ? format(run(data.resourceAmt, data) || player[layer].points, data.precision) : formatWhole(run(data.resourceAmt, data) || player[layer].points)}}</h2> {{data.resource || tmp[layer].resource}}<span v-if="data.effectDescription">, <span v-html="run(data.effectDescription, data)"></span></span><br><br></div>
+		<div style="margin: 0 10px"><span v-if="player[layer].points.lt('1e1000')">You have </span><h2 v-bind:style="{'color': data.color || tmp[layer].color, 'text-shadow': '0px 0px 10px'}">{{data.precision ? format(run(data.resourceAmt, data) || player[layer].points, data.precision) : formatWhole(run(data.resourceAmt, data) || player[layer].points)}}</h2> <span v-html="data.resource || tmp[layer].resource"></span><span v-if="data.effectDescription">, <span v-html="run(data.effectDescription, data)"></span></span><br><br></div>
 		`
 	})
 
@@ -566,7 +566,7 @@ function loadVue() {
 			<span v-for="id in row" style = "{width: 0px; height: 0px;}" v-if="tmp[layer][type+'s'][id]!== undefined && tmp[layer][type+'s'][id].unlocked" class="upgAlign">
 				<div v-bind:is="type" :layer = "layer" :data = "id" v-bind:style="tmp[layer].componentStyles[type]" class = "treeThing"></div>
 			</span>
-			<tr><table><button class="treeNode hidden"></button></table></tr>
+			<tr><table><button class="treeNode hidden" style="height: 1px !important;"></button></table></tr>
 		</span></div>
 	`
 	})

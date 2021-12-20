@@ -3,17 +3,17 @@ let modInfo = {
 	id: "ScarletDystopia181-2122christmastree",
 	author: "Scarlet",
 	pointsName: "christmas points",
-	modFiles: ["layers/gifts.js", "layers/money.js", "tree.js"],
+	modFiles: ["layers/gifts.js", "layers/money.js", "layers/distance.js", "layers/prestige.js", "layers/ad.js", "layers/energy.js", "tree.js"],
 
 	discordName: "",
 	discordLink: "",
-	initialStartPoints: new Decimal (10), // Used for hard resets and new players
+	initialStartPoints: new Decimal (0), // Used for hard resets and new players
 	offlineLimit: 1,  // In hours
 }
 
 // Set your version in num and name
 let VERSION = {
-	num: "2.1",
+	num: "2.2",
 	name: "Christmas",
 }
 
@@ -35,7 +35,7 @@ function getStartPoints(){
 
 // Determines if it should show points/sec
 function canGenPoints(){
-	return true
+	return hasUpgrade("pt", 11);
 }
 
 // Calculate points/sec!
@@ -43,7 +43,14 @@ function getPointGen() {
 	if(!canGenPoints())
 		return new Decimal(0)
 
-	let gain = new Decimal(0)
+	let gain = new Decimal(1);
+	if (hasUpgrade("pt", 12)) gain = gain.mul(tmp.pt.upgrades[12].effect);
+	if (hasUpgrade("pt", 13)) gain = gain.mul(tmp.pt.upgrades[13].effect);
+	gain = gain.mul(tmp.pt.buyables[11].effect).mul(tmp.pt.buyables[12].effect);
+	gain = gain.mul(tmp.pt.ind.coalBoostPoints);
+	gain = gain.mul(tmp.pt.timeSpeed);
+	gain = gain.mul(tmp.pt.buyables[23].effect);
+	if (hasUpgrade("ad", "e14")) gain = gain.mul(tmp.ad.upgrades.e14.effect);
 	return gain
 }
 
@@ -57,7 +64,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasUpgrade("mc", 41)
+	return false
 }
 
 
@@ -77,6 +84,9 @@ function maxTickLength() {
 // Use this if you need to undo inflation from an older version. If the version is older than the version that fixed the issue,
 // you can cap their current resources with this.
 function fixOldSave(oldVersion){
+	if (oldVersion == "2.1") {
+		player.points = new Decimal(0);
+	}
 	if (oldVersion == "2.0") {
 		player.m.points = player.m.points.min(3);
 		player.m.total = player.m.points;

@@ -74,6 +74,7 @@ function setupLayer(layer){
                 layers[layer].upgrades[thing].layer = layer
                 if (layers[layer].upgrades[thing].unlocked === undefined)
                     layers[layer].upgrades[thing].unlocked = true
+                Object.defineProperty(layers[layer].upgrades[thing], "tmp", {get() {return tmp[this.layer].upgrades[this.id]}});
             }
         }
     }
@@ -125,7 +126,9 @@ function setupLayer(layer){
                     layers[layer].buyables[thing].unlocked = true
                 layers[layer].buyables[thing].canBuy = function() {return canBuyBuyable(this.layer, this.id)}
                 if (layers[layer].buyables[thing].purchaseLimit === undefined) layers[layer].buyables[thing].purchaseLimit = new Decimal(Infinity)
-        
+                layers[layer].buyables[thing]
+                Object.defineProperty(layers[layer].buyables[thing], "player", {get() {return player[this.layer].buyables[this.id]}});
+                Object.defineProperty(layers[layer].buyables[thing], "tmp", {get() {return tmp[this.layer].buyables[this.id]}});
             }  
     
         }

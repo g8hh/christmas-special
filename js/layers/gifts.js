@@ -55,7 +55,8 @@ const gameClickable = {
 		for (let i of this.skills)
 			base = base.mul(tmp.g.buyables[i].effect);
 		base = base.mul(hasUpgrade("g", 202) ? player.g.buyables[121].mul(0.3).pow(1.3).add(1) : 1);
-		return base.toNumber();
+		base = base.mul(tmp.pt.ind.gachaBoost);
+		return base.min(1).toNumber();
 	},
 	color() {
 		return player.g.games.gameState[this.id] ? "#77bf5f" : "#3ad";
@@ -135,6 +136,7 @@ addLayer("g", {
 		let base = decimalOne;
 		base = base.mul(tmp.g.joyEffects.giftMult);
 		base = base.mul(tmp.m.buyables[11].effect.gift);
+		base = base.mul(tmp.pt.ind.giftRewards);
 		return base;
 	},
 	row: 0,
@@ -906,6 +908,7 @@ addLayer("g", {
 	},
 
 	update(d) {
+		d = tmp.pt.timeSpeed.mul(d);
 		player.g.waitTime = player.g.waitTime.add(tmp.g.waitTimeGain.mul(d));
 		addPoints("g", player.g.waitTime.div(10).floor().mul(tmp.g.giftMulti));
 		for (i of tmp.g.giftEffects) {
@@ -941,7 +944,7 @@ addLayer("g", {
 			buyBuyable("g", 22);
 			buyBuyable("g", 32);
 		}
-		if (hasMilestone("g", 404)) {
+		if (hasMilestone("g", 404) && (player.devSpeed > 1e-5 || player.devSpeed == undefined)) {
 			clickClickable("g", 71);
 			clickClickable("g", 72);
 			clickClickable("g", 73);
@@ -1096,6 +1099,7 @@ addLayer("g", {
 		base = base.add(tmp.g.buyables[32].effect.joy);
 		if (hasUpgrade("m", 11)) base = base.add(4);
 		if (hasUpgrade("g", 205)) base = base.add(tmp.g.upgrades[205].effect);
+		base = base.mul(tmp.pt.ind.joyMult);
 		return base;
 	},
 	joyEffects: {

@@ -222,7 +222,7 @@ function subtabShouldNotify(layer, family, id) {
     let subtab = {}
     if (family == "mainTabs") subtab = tmp[layer].tabFormat[id]
     else subtab = tmp[layer].microtabs[family][id]
-	if (!subtab.unlocked) return false
+	if (!subtab.unlocked && subtab.unlocked != undefined) return false
     if (subtab.embedLayer) return tmp[subtab.embedLayer].notify
     else return subtab.shouldNotify
 }
@@ -409,4 +409,16 @@ function gridRun(layer, func, data, id) {
 	}
 	else
 		return layers[layer].grid[func];
+}
+
+
+function incBuyable(layer, id, amt = new Decimal(1)) {
+	player[layer].buyables[id] = player[layer].buyables[id].add(amt);
+}
+
+function spendPoints(layer, amt) {
+	player[layer].points = player[layer].points.sub(amt);
+}
+function setZero(layer) {
+	player[layer].points = decimalZero;
 }

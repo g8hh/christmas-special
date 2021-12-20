@@ -43,6 +43,14 @@ addLayer("m", {
 			title: "Generous-er donations",
 			description: "Unlock money buyables. You still don't know what a buyable is.",
 			cost: 55555
+		},
+		21: {
+			title: "Uh.",
+			description: "You can finally buy max <b>Null</b> now. Be grateful.",
+			cost: "1e20000",
+			unlocked() {
+				return hasUpgrade("pt", 34);
+			}
 		}
 	},
 	buyables: {
@@ -59,9 +67,15 @@ addLayer("m", {
 				${format(player.m.points)}/${format(tmp.m.buyables[11].cost)} money`
 			},
 			buy() {
+				if (hasUpgrade("m", 21)) {
+					buyMaxBuyable("m", 11);
+					return;
+				}
 				if (!hasUpgrade("mc", 22)) player.m.points = player.m.points.sub(tmp.m.buyables[this.id].cost);
-				player.m.spentOnBuyables = player.m.spentOnBuyables.add(tmp.m.buyables[this.id].cost);
 				player.m.buyables[this.id] = player.m.buyables[this.id].add(1);
+			},
+			buyMax() {
+				player.m.buyables[11] = player.m.points.div(10000).mul(hasUpgrade("g", 95) ? tmp.g.upgrades[95].effect : 1).log(2).floor().add(1);
 			},
 			cost() {
 				let base = Decimal.pow(2, player.m.buyables[11]).mul(10000);
@@ -164,7 +178,7 @@ addLayer("m", {
 	tabFormat: {
 		Main: {
 			content: [["main-display", 2], ["resource-display", 2], "blank", ["layer-proxy", ["g", [["clickable", 51]]]],
-			"blank", "clickables", "buyables", "blank", ["upgrades", 1]]
+			"blank", "clickables", "buyables", "blank", ["upgrades", [1, 2]]]
 		}
 	},
 	doReset() {}
@@ -192,6 +206,7 @@ addLayer("mc", {
 	gainMult() {
 		let base = decimalOne;
 		base = base.mul(tmp.m.buyables[11].effect.machine);
+		base = base.mul(tmp.pt.ind.machineBoost);
 		return base;
 	},
 	layerShown() {return player.mc.unlocked},
@@ -199,6 +214,9 @@ addLayer("mc", {
 		milestone: {
 			width: "400px"
 		}
+	},
+	passiveGeneration() {
+		return Number(hasUpgrade("mc", 41))*0.181;
 	},
 
 	upgrades: {
@@ -244,12 +262,16 @@ addLayer("mc", {
 		},
 		41: {
 			title: "Santa's Ultimate Gift",
-			description: "What could it be?",
+			description() {
+				return hasUpgrade("mc", 41) ? `Gain 18.1% of machine parts on prestige every second.<br>
+				Autobuy all machines, and they don't spend anything.<br>
+				And finally, the gift- Actual games this time!` : "What could it be?"
+			},
 			cost: 1e150,
 			unlocked() {
 				return hasUpgrade("mc", 31)
 			},
-			style: {width: "240px", height: "240px", margin: "20px auto", "font-size": "15px"}
+			style: {width: "240px", height: "240px", margin: "20px auto", "font-size"() { return hasUpgrade("mc", 41) ? "" : "15px"}}
 		},
 		printer: {
 			title: "Printer go brr",
@@ -417,7 +439,16 @@ addLayer("mc", {
 	hotkeys: [
 		{key: "M", description: "Shift + M: Reset for machine parts", onPress(){if (canReset(this.layer)) doReset(this.layer)}}
 	],
+	automate() {
+		if (hasUpgrade("mc", 41)) {
+			buyBuyable("mc", "printer");
+			buyBuyable("mc", "giftAuto");
+			buyBuyable("mc", "timeWarp");
+			buyBuyable("mc", "mine");
+		}
+	},
 	update(d) {
+		d = tmp.pt.timeSpeed.mul(d);
 		addGiftRewards("coal", tmp.mc.buyables.mine.effect.coal.mul(d));
 	},
 	branches: ["g", "m"],
