@@ -174,7 +174,8 @@ addLayer("di", {
 		rockets: {
 			title: "Rockets",
 			display() {
-				return `Reset previous process for <b style="color: #333">${formatWhole(this.tmp.gain)}</b> rockets.`
+				return `Reset previous process for <b style="color: #333">${formatWhole(this.tmp.gain)}</b> rockets.<br>
+				Req: 1e20 distance`
 			},
 			buy() {
 				incBuyable("di", "rockets", this.tmp.gain);
