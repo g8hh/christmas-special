@@ -22,7 +22,7 @@ addLayer("pt", {
 		let base = decimalOne;
 		if (hasMilestone("di", 101)) base = base.mul(10);
 		base = base.mul(tmp.pt.ind.machineBoostPrestige);
-		base = base.mul(tmp.pt.upgrades[32].effect[1]);
+		if (hasUpgrade("pt", 32)) base = base.mul(tmp.pt.upgrades[32].effect[1]);
 		return base;
 	},
 	type: "normal",
