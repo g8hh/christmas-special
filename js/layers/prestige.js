@@ -211,7 +211,7 @@ addLayer("pt", {
 			requirementDescription: "18 time and space inductors",
 			effectDescription: "Gain 18.1% of prestige points gained on reset every second.",
 			done() {
-				return player.pt.buyables[21].gte(32) && player.pt.buyables[22].gte(32);
+				return player.pt.buyables[21].gte(18) && player.pt.buyables[22].gte(18);
 			}
 		}
 	},
