@@ -220,7 +220,7 @@ addLayer("ie", {
 				Multiply blue photon generation by x${format(tmp.ie.photons.indigo.lastBoost)}`
 			},
 			effect() {
-				return player.ie.photons.indigo.add(1).pow(2);
+				return player.ie.photons.indigo.add(1).pow(5);
 			},
 			lastBoost() {
 				return player.ie.photons.indigo.add(1).sqrt();
@@ -259,7 +259,7 @@ addLayer("ie", {
 			},
 			costDiv() {
 				let base = new Decimal(1);
-				base = base.div(tmp.ie.photons.indigo.effect);
+				base = base.mul(tmp.ie.photons.indigo.effect);
 				return base;
 			},
 			cost(x = player.ie.buyables[11]) {
@@ -297,7 +297,7 @@ addLayer("ie", {
 			},
 			costDiv() {
 				let base = new Decimal(1);
-				base = base.div(tmp.ie.photons.indigo.effect);
+				base = base.mul(tmp.ie.photons.indigo.effect);
 				return base;
 			},
 			cost(x = player.ie.buyables[12]) {
@@ -333,7 +333,7 @@ addLayer("ie", {
 			},
 			costDiv() {
 				let base = new Decimal(1);
-				base = base.div(tmp.ie.photons.indigo.effect);
+				base = base.mul(tmp.ie.photons.indigo.effect);
 				return base;
 			},
 			cost(x = player.ie.buyables[13]) {
