@@ -141,7 +141,10 @@ function layerDataReset(layer, keep = []) {
 	let storedData = {unlocked: player[layer].unlocked, forceTooltip: player[layer].forceTooltip, noRespecConfirm: player[layer].noRespecConfirm, prevTab:player[layer].prevTab} // Always keep these
 
 	for (thing in keep) {
-		if (player[layer][keep[thing]] !== undefined)
+		if (isPlainObject(player[layer][keep[thing]])) {
+			storedData[keep[thing]] = {};
+			layOver(storedData[keep[thing]], player[layer][keep[thing]]);
+		} else if (player[layer][keep[thing]] !== undefined)
 			storedData[keep[thing]] = player[layer][keep[thing]]
 	}
 

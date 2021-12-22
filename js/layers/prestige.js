@@ -16,13 +16,22 @@ addLayer("pt", {
 	resource: "prestige points",
 	baseResource: "points",
 	baseAmount() {
-		return player.points
+		return player.points;
 	},
 	gainMult() {
 		let base = decimalOne;
+		base = base.mul(tmp.rb.effect);
 		if (hasMilestone("di", 101)) base = base.mul(10);
 		base = base.mul(tmp.pt.ind.machineBoostPrestige);
 		if (hasUpgrade("pt", 32)) base = base.mul(tmp.pt.upgrades[32].effect[1]);
+		base = base.mul(tmp.rb.effect).mul(tmp.db.effect).mul(tmp.hi.effect);
+		base = base.mul(tmp.rb.buyables[14].effect);
+		base = base.mul(tmp.db.buyables[11].effect);
+		return base;
+	},
+	gainExp() {
+		let base = decimalOne;
+		base = base.mul(tmp.rb.buyables[24].effect);
 		return base;
 	},
 	type: "normal",
@@ -129,8 +138,8 @@ addLayer("pt", {
 			}
 		},
 		24: {
-			title: "Waveform Alter",
-			description: "Alter the induction waveform to a square wave.",
+			title: "Missing Pair",
+			description: "Unlock a backward induction.",
 			cost: 1e100,
 			unlocked() {
 				return hasUpgrade("pt", 21);
@@ -199,7 +208,7 @@ addLayer("pt", {
 			}
 		},
 		2: {
-			requirementDescription: "32 time and space inductors",
+			requirementDescription: "18 time and space inductors",
 			effectDescription: "Gain 18.1% of prestige points gained on reset every second.",
 			done() {
 				return player.pt.buyables[21].gte(32) && player.pt.buyables[22].gte(32);
@@ -284,7 +293,7 @@ addLayer("pt", {
 				return player.points.gte(this.tmp.cost);
 			},
 			effect1() {
-				return this.player.mul(2).add(1).sqrt().min(10).toNumber();
+				return this.player.mul(2).add(1).sqrt().min(5).toNumber();
 			},
 			effect2() {
 				return Decimal.pow(2, this.player.pow(0.8));
@@ -352,7 +361,7 @@ addLayer("pt", {
 			width: 300,
 			height: 30,
 			progress() {
-				return (hasUpgrade("pt", 34) || hasUpgrade("pt", 24)) ? 1 : tmp.pt.ind.c.abs().sub(tmp.pt.ind.c.abs().floor());
+				return 1
 			},
 			display() {
 				return hasUpgrade("pt", 34) ? "Forward-Backward Induction" : (tmp.pt.ind.c.gte(0) ? "Backward Induction" : "Forward Induction")
@@ -360,8 +369,7 @@ addLayer("pt", {
 			fillStyle: {
 				"background-color"() {
 					return hasUpgrade("pt", 34) ? "#ff08" : (tmp.pt.ind.c.gte(0) ? "#f008" : "#0ff8");
-				},
-				transition: "clip-path 0.05s, background-color 0.3s"
+				}
 			},
 			unlocked() {
 				return hasUpgrade("pt", 21)
@@ -375,8 +383,7 @@ addLayer("pt", {
 			return base;
 		},
 		c() {
-			let base = new Decimal(Math.sin(tmp.pt.buyables[21].effect1*player.time/2000));
-			if (hasUpgrade("pt", 24)) base = new Decimal(Math.sign(Math.sin(tmp.pt.buyables[21].effect1*player.time/2000)));
+			base = new Decimal(Math.sign(Math.sin(tmp.pt.buyables[21].effect1*player.time/2000)));
 			base = base.mul(tmp.pt.ind.cMult);
 			return base;
 		},
@@ -427,6 +434,12 @@ addLayer("pt", {
 			if (!hasUpgrade("pt", 33) || !hasUpgrade("pt", 21) || c.lte(0)) return decimalOne;
 			let base = Decimal.pow(1.8, player.g.ascensions.points.pow(0.45)).pow(c.mul(0.5));
 			return base;
+		},
+		skillCost() {
+			const c = hasUpgrade("pt", 34) ? tmp.pt.ind.cMult : tmp.pt.ind.c;
+			if (!hasUpgrade("pt", 24) || !hasUpgrade("pt", 21) || c.lte(0)) return decimalOne;
+			let base = player.pt.points.add(10).log10().pow(0.04);
+			return base;
 		}
 	},
 
@@ -449,12 +462,13 @@ addLayer("pt", {
 		},
 		Induction: {
 			content: ["main-display", "prestige-button", "resource-display", ["raw-html", () => `Time speed: x${format(tmp.pt.timeSpeed)}`], "blank", ["buyables", [2]], "blank",
-			["milestones", [0, 1, 2], () => hasUpgrade("pt", 22)], "blank", ["bar", "ind"], "blank",
+			["milestones", [2, 0, 1], () => hasUpgrade("pt", 22)], "blank", ["bar", "ind"], "blank",
 			["display-text", "<h2>Backward induction</h2>"],
 			["raw-html", () => `Boost gift rewards based on prestige points. Currently: x${format(tmp.pt.ind.giftRewards)}`],
 			["raw-html", () => `Multiply joy based on generator effect. Currently: x${format(tmp.pt.ind.joyMult)}`],
 			["raw-html", () => `Boost machine parts gain based on distance. Currently: x${format(tmp.pt.ind.machineBoost)}`],
 			["raw-html", () => `Boost game success chance based on distance. Currently: x${format(tmp.pt.ind.gachaBoost)}`, () => hasUpgrade("pt", 33)],
+			["raw-html", () => `Skills scale slower based on prestige poitns. Currently: x${format(tmp.pt.ind.skillCost)}`, () => hasUpgrade("pt", 24)],
 			"blank",
 			["display-text", "<h2>Forward induction</h2>"],
 			["raw-html", () => `Boost christmas point gain based on coal. Currently: x${format(tmp.pt.ind.coalBoostPoints)}`],
@@ -469,7 +483,7 @@ addLayer("pt", {
 	},
 	doReset(l) {
 		if (layers[l].row > 2)
-			layerDataReset("pt", ["milestones", "upgrades"]);
+			layerDataReset("pt", ["milestones", "upgrades", "autoBooster", "autoGenerator"]);
 	},
 	branches: ["mc", "di"],
 	tooltipLocked: "NULL"

@@ -14,9 +14,7 @@ addLayer("di", {
 		},
 		scraps: new Decimal(0),
 		mech1Time: new Decimal(0),
-		mech2Time: new Decimal(0),
-		mech4Time: new Decimal(0),
-		lastMech4Activation: Date.now()
+		mech2Time: new Decimal(0)
 	}},
 	color: "#81C",
 	resource: "distance",
@@ -96,9 +94,6 @@ addLayer("di", {
 			},
 			buy() {
 				player.di.buyables[11] = player.di.buyables[11].add(1);
-				if (hasMilestone("di", 103)) return;
-				player.di.points = decimalZero;
-				player.di.velocity = decimalOne;
 			},
 			scalingMult() {
 				let base = decimalOne;
@@ -117,7 +112,7 @@ addLayer("di", {
 			},
 			effect() {
 				return [player.di.buyables[11].add(5).div(6).floor().add(1),
-				player.di.buyables[11].add(4).div(6).floor().mul(0.3),
+				player.di.buyables[11].add(4).div(6).floor(),
 				Decimal.pow(player.di.buyables[11].add(3).div(6).floor().mul(0.1).add(1), player.di.buyables[11]),
 				Decimal.pow(2, player.di.buyables[11].add(2).div(6).floor()),
 				Decimal.pow(player.di.buyables[11].add(1).div(6).floor().mul(2).add(1), player.di.buyables[12]),
@@ -175,7 +170,7 @@ addLayer("di", {
 			title: "Rockets",
 			display() {
 				return `Reset previous process for <b style="color: #333">${formatWhole(this.tmp.gain)}</b> rockets.<br>
-				Req: 1e20 distance`
+				${this.tmp.gain.gte(100) ? "" : `Next at ${formatWhole(this.tmp.nextAt)} distance`}`
 			},
 			buy() {
 				incBuyable("di", "rockets", this.tmp.gain);
@@ -188,10 +183,19 @@ addLayer("di", {
 				let base = decimalOne;
 				if (hasUpgrade("pt", 31)) base = base.mul(tmp.pt.upgrades[31].effect);
 				base = base.mul(tmp.pt.ind.ascensionBoostRockets);
+				base = base.mul(tmp.rb.buyables[11].effect);
+				return base;
+			},
+			gainExp() {
+				let base = decimalOne;
+				base = base.mul(tmp.rb.buyables[21].effect);
 				return base;
 			},
 			gain() {
-				return player.di.points.div(1e20).pow(0.05).mul(this.tmp.gainMult).floor();
+				return player.di.points.div(1e20).pow(0.05).mul(this.tmp.gainMult).pow(this.tmp.gainExp).floor();
+			},
+			nextAt() {
+				return this.tmp.gain.add(1).root(this.tmp.gainExp).div(this.tmp.gainMult).pow(20).mul(1e20);
 			},
 			canAfford() {
 				return player.di.points.gte(1e20);
@@ -216,6 +220,7 @@ addLayer("di", {
 			},
 			buy() {
 				incBuyable("di", "engines");
+				if (hasMilestone("rb", 0)) return;
 				player.di.points = decimalZero;
 				player.di.velocity = decimalOne;
 				player.di.buyables[11] = decimalZero;
@@ -231,11 +236,13 @@ addLayer("di", {
 			},
 			effect() {
 				let r = this.player;
-				let baseEffect = r.mul(player.di.drainedPrestige.add(1).log(9)).pow(0.3).mul(0.2);
+				let effExp = new Decimal(1);
+				effExp = effExp.mul(tmp.rb.elfEff);
+				let baseEffect = r.pow(effExp).mul(player.di.drainedPrestige.add(1).log(9)).pow(0.3).mul(0.2);
 				return baseEffect;
 			},
 			unlocked() {
-				return player.pt.unlocked
+				return player.pt.unlocked;
 			},
 			color: "#bbb"
 		},
@@ -355,7 +362,7 @@ addLayer("di", {
 		mech4: {
 			title: "Broken Generator",
 			display() {
-				return `Gain a e^sinusoidal dimension multiplier.<br>
+				return `Gain a ${player.db.buyables[41].gte(1) ? "" :"e^sinusoidal"} dimension multiplier.<br>
 				x${format(this.tmp.effect)}.<br>
 				Cost: ${formatWhole(this.tmp.cost)} scraps`
 			},
@@ -371,7 +378,7 @@ addLayer("di", {
 				return player.di.scraps.gte(this.tmp.cost);
 			},
 			effect() {
-				return Decimal.pow(10, this.player.mul(Math.min(0.45, Math.sin(player.time/500)*0.55) + 0.55));
+				return Decimal.pow(10, this.player.mul(player.db.buyables[41].gte(1) ? 1.2 : Math.min(0.45, Math.sin(player.time/500)*0.55) + 0.55));
 			},
 			unlocked() {
 				return hasUpgrade("di", "mech") && hasUpgrade("ad", "e22");
@@ -403,7 +410,7 @@ addLayer("di", {
 		},
 		103: {
 			requirementDescription: "1.00e30 stored prestige points",
-			effectDescription: "Ranks and Tiers no longer reset anything.",
+			effectDescription: "Tiers no longer reset anything.",
 			done() {
 				return player.di.drainedPrestige.gte(1e30);
 			}
@@ -479,12 +486,14 @@ addLayer("di", {
 		return base;
 	},
 	maxVelocity() {
-		let base = new Decimal(10);
+		let base = new Decimal(20);
 		base = base.mul(tmp.di.buyables[11].effect[3]);
 		if (hasTier(2) && player.di.buyables[11].gte(4)) base = base.mul(5);
 		base = base.mul(tmp.di.buyables[11].effect[5]);
 		if (hasTier(6)) base = base.mul(tierEffect(6));
 		base = base.mul(tmp.pt.buyables[23].effect);
+		base = base.mul(tmp.rb.buyables[13].effect);
+		base = base.pow(tmp.rb.buyables[23].effect);
 		base = base.mul(base.add(Math.E).ln().pow(tmp.di.buyables.rockets.effect));
 		return base;
 	},
@@ -497,6 +506,7 @@ addLayer("di", {
 		base = base.mul(tmp.di.buyables.rockets.effect.add(1));
 		base = base.mul(tmp.di.buyables.engines.effect.add(1));
 		if (hasUpgrade("pt", 14)) base = base.mul(tmp.pt.upgrades[14].effect);
+		base = base.mul(tmp.rb.effect).mul(tmp.db.effect).mul(tmp.hi.effect);
 		return base;
 	},
 	acceleration() {
@@ -507,6 +517,8 @@ addLayer("di", {
 		base = base.mul(tmp.di.buyables[11].effect[5]);
 		if (hasTier(6)) base = base.mul(tierEffect(6));
 		base = base.mul(tmp.pt.buyables[23].effect);
+		base = base.mul(tmp.rb.buyables[13].effect);
+		base = base.pow(tmp.rb.buyables[23].effect);
 		base = base.mul(base.add(Math.E).ln().pow(tmp.di.buyables.rockets.effect));
 		return base;
 	},
@@ -514,6 +526,8 @@ addLayer("di", {
 		let base = player.di.points.add(1).log10();
 		if (hasUpgrade("pt", 32)) base = base.mul(tmp.pt.upgrades[32].effect[0]);
 		base = base.mul(tmp.di.buyables.mech3.effect);
+		base = base.mul(tmp.rb.buyables[12].effect);
+		base = base.pow(tmp.rb.buyables[22].effect);
 		return base;
 	},
 
@@ -543,9 +557,10 @@ addLayer("di", {
 				effectDescription() {
 					return `increasing rocket effect and velocity by ${format(tmp.di.buyables.engines.effect.mul(100))}%`
 				}
-			}, () => player.di.buyables.engines.gte(1)], ["milestones", [101, 102, 103], () => player.di.buyables.engines.gte(1)],
+			}, () => player.di.buyables.engines.gte(1)], ["milestones", [101, 102, 103], () => player.di.drainedPrestige.gte(10)],
 			["bar", "prestigeDrain", () => player.di.buyables.engines.gte(1)],
 			["clickable", 11, () => player.di.buyables.engines.gte(1)],
+			["raw-html", "Rocket engines are fueled by prestige points. Nobody knows how, or why.", () => player.di.buyables.engines.gte(1)],
 			"blank", ["buyable", "layerUnlock"]],
 			unlocked() {
 				return hasMilestone("di", 0)

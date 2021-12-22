@@ -439,7 +439,7 @@ addLayer("g", {
 				return hasUpgrade("g", 202) ? Decimal.pow(2, player.g.buyables[this.id].pow(0.8)) : decimalOne
 			},
 			cost() {
-				return Decimal.pow(2.5, player.g.buyables[this.id].pow(1.3)).mul(100);
+				return Decimal.pow(2.5, player.g.buyables[this.id].div(tmp.pt.ind.skillCost).pow(1.3)).mul(100);
 			},
 			canAfford() {
 				return player.g.games.points.gte(tmp.g.buyables[this.id].cost);
@@ -466,7 +466,7 @@ addLayer("g", {
 				return hasUpgrade("g", 202) ? Decimal.pow(2, player.g.buyables[this.id].pow(0.8)) : decimalOne
 			},
 			cost() {
-				return Decimal.pow(2.5, player.g.buyables[this.id].pow(1.3)).mul(100);
+				return Decimal.pow(2.5, player.g.buyables[this.id].div(tmp.pt.ind.skillCost).pow(1.3)).mul(100);
 			},
 			canAfford() {
 				return player.g.games.points.gte(tmp.g.buyables[this.id].cost);
@@ -493,7 +493,7 @@ addLayer("g", {
 				return hasUpgrade("g", 202) ? Decimal.pow(2, player.g.buyables[this.id].pow(0.8)) : decimalOne
 			},
 			cost() {
-				return Decimal.pow(2.5, player.g.buyables[this.id].pow(1.3)).mul(100);
+				return Decimal.pow(2.5, player.g.buyables[this.id].div(tmp.pt.ind.skillCost).pow(1.3)).mul(100);
 			},
 			canAfford() {
 				return player.g.games.points.gte(tmp.g.buyables[this.id].cost);
@@ -520,7 +520,7 @@ addLayer("g", {
 				return hasUpgrade("g", 202) ? Decimal.pow(2, player.g.buyables[this.id].pow(0.8)) : decimalOne
 			},
 			cost() {
-				return Decimal.pow(2.5, player.g.buyables[this.id].pow(1.3)).mul(100);
+				return Decimal.pow(2.5, player.g.buyables[this.id].div(tmp.pt.ind.skillCost).pow(1.3)).mul(100);
 			},
 			canAfford() {
 				return player.g.games.points.gte(tmp.g.buyables[this.id].cost);
@@ -548,7 +548,7 @@ addLayer("g", {
 				return hasUpgrade("g", 202) ? Decimal.pow(4, player.g.buyables[121].pow(0.8)) : decimalOne
 			},
 			cost() {
-				return Decimal.pow(3, player.g.buyables[this.id].pow(1.4)).mul(300);
+				return Decimal.pow(3, player.g.buyables[this.id].div(tmp.pt.ind.skillCost).pow(1.4)).mul(300);
 			},
 			canAfford() {
 				return player.g.games.points.gte(tmp.g.buyables[121].cost);

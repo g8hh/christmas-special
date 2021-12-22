@@ -143,7 +143,12 @@ addLayer("ad", {
 	buyables: {
 		dim1: {
 			...aD.buy,
-			dimLvl: 1
+			dimLvl: 1,
+			mult() {
+				let base = decimalOne;
+				base = base.mul(tmp.rb.effect).mul(tmp.db.effect).mul(tmp.hi.effect);
+				return base;
+			},
 		},
 		dim2: {
 			...aD.buy,
@@ -171,7 +176,12 @@ addLayer("ad", {
 		},
 		dim8: {
 			...aD.buy,
-			dimLvl: 8
+			dimLvl: 8,
+			mult() {
+				let base = decimalOne;
+				base = base.mul(tmp.db.buyables[11].effect);
+				return base;
+			}
 		},
 		ts: {
 			display() { return `Increase tickspeed<br>Cost: ${formatWhole(this.tmp.cost)}`},
@@ -243,7 +253,7 @@ addLayer("ad", {
 				return player.ad.points.gte(this.tmp.cost);
 			},
 			multEffect() {
-				let base = Decimal.pow(8*hasTier(9) + 2, this.player);
+				let base = Decimal.pow(8*hasTier(9) + 2, this.player.mul(tmp.hi.buyables[21].effect));
 				if (hasUpgrade("ad", "e2")) base = base.pow(1.5);
 				return base;
 			},
@@ -497,7 +507,7 @@ addLayer("ad", {
 		e5: {
 			title: "Spatial Solution",
 			description: "Push back the post-e308 dimension cost scaling based on space.",
-			cost: 1e145,
+			cost: 1e144,
 			...volBuy,
 			effect() {
 				return tmp.ad.volume.add(1).sqrt();
@@ -529,14 +539,14 @@ addLayer("ad", {
 		},
 		e8: {
 			title: "Spatial Problem",
-			description: "The ADverse can no longer contain your space. Expand into the PTverse.",
-			cost: 1e252,
+			description: "The ADverse can no longer contain your space. Expand into the PTverse. Oh, and automatically buy max.",
+			cost: 1e250,
 			...volBuy
 		},
 		e11: {
 			title: "Time Solution",
 			description: "Time speed affects AD, and tickspeed boosts the generator base.",
-			cost: 2e252,
+			cost: 1e250,
 			...volBuy,
 			unlocked() {
 				return hasUpgrade("ad", "e8")
@@ -578,7 +588,7 @@ addLayer("ad", {
 		e14: {
 			title: "Time Problem",
 			description: "Multiply christmas point gain based on condenser effect.",
-			cost: "1e389",
+			cost: "1e385",
 			...volBuy,
 			unlocked() {
 				return hasUpgrade("ad", "e8");
@@ -594,7 +604,7 @@ addLayer("ad", {
 		e15: {
 			title: "Space-Time Problem",
 			description: "The PTverse has run out of space. Ascend to the DIverse.",
-			cost: "1e391",
+			cost: "1e388",
 			...volBuy,
 			unlocked() {
 				return hasUpgrade("ad", "e8");
@@ -603,7 +613,7 @@ addLayer("ad", {
 		e21: {
 			title: "Distance, Scaled",
 			description: "Greatly reduce the level scaling. The rocket effect applies to power.",
-			cost: "2e391",
+			cost: "1e390",
 			effectDisplay() {
 				return `ln(x+2.718)^${format(tmp.di.buyables.rockets.effect)}`
 			},
@@ -616,7 +626,7 @@ addLayer("ad", {
 		e22: {
 			title: "Power, Scaled",
 			description: "Unlock a new mechanisation.",
-			cost: "1e915",
+			cost: "1e914",
 			...volBuy,
 			branches: ["e23"],
 			unlocked() {
@@ -701,6 +711,10 @@ addLayer("ad", {
 		}
 	},
 
+	automate() {
+		if (hasUpgrade("ad", "e8"))
+			clickClickable("ad", "maxAll");
+	},
 	update(d) {
 		if (hasUpgrade("ad", "e11")) d = tmp.pt.timeSpeed.mul(d);
 		addPoints("ad", tmp.ad.buyables.dim1.effect.mul(d).mul(tmp.ad.buyables.ts.effect));
