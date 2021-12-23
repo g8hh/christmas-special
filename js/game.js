@@ -413,7 +413,8 @@ var interval = setInterval(function() {
 		}
 		if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined
 	}
-	if (player.devSpeed) diff *= player.devSpeed
+	if (player.devSpeed) diff *= player.devSpeed;
+	if (row3unlocks() > 2) diff *= 0.001;
 	player.time = now
 	if (needCanvasUpdate){ resizeCanvas();
 		needCanvasUpdate = false;
