@@ -150,7 +150,7 @@ addLayer("g", {
 	clickables: {
 		11: {
 			title: "Open a gift!",
-			display: `What could be hiding inside?`,
+			display: `(Hold down to open multiple)<br>What could be hiding inside?`,
 			canClick() {
 				return player.g.points.gte(1)
 			},
