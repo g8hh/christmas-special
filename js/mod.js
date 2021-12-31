@@ -1,5 +1,5 @@
 let modInfo = {
-	name: "The Christmas^2 Tree",
+	name: "圣诞特辑树 - The Christmas^2 Tree",
 	id: "ScarletDystopia181-2122christmastree",
 	author: "Scarlet",
 	pointsName: "christmas points",
